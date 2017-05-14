@@ -151,6 +151,20 @@ suite("Mode Insert", () => {
         assertEqualLines(["text "]);
     });
 
+    newTest({
+      title: "Can handle <C-w> on leading whitespace",
+      start: ['foo', '  |bar'],
+      keysPressed: 'i<C-w>',
+      end: ['foo', '|bar']
+    });
+
+    newTest({
+      title: "Can handle <C-w> at beginning of line",
+      start: ['foo', '|bar'],
+      keysPressed: 'i<C-w>',
+      end: ['foo|bar']
+    });
+
     test("Correctly places the cursor after deleting the previous line break", async() => {
         await modeHandler.handleMultipleKeyEvents([
             'i',
@@ -193,10 +207,65 @@ suite("Mode Insert", () => {
     });
 
     newTest({
+      title: "Backspace works on whitespace only lines",
+      start: ['abcd', '     |    '],
+      keysPressed: 'a<BS><Esc>',
+      end: ['abcd', "   | "],
+    });
+
+    newTest({
+      title: "Backspace works on end of whitespace only lines",
+      start: ['abcd', '     | '],
+      keysPressed: 'a<BS><Esc>',
+      end: ['abcd', "   | "],
+    });
+
+    newTest({
+        title: "Backspace works at beginning of file",
+        start: ['|bcd'],
+        keysPressed: 'i<BS>a<Esc>',
+        end: ['|abcd'],
+    });
+
+    newTest({
       title: "Can perform <ctrl+o> to exit and perform one command in normal",
       start: ['testtest|'],
       keysPressed: 'a123<C-o>b123',
       end: ['123|testtest123']
     });
 
+    newTest({
+      title: "Can perform insert command prefixed with count",
+      start: ['tes|t'],
+      keysPressed: '2i_<Esc>',
+      end: ['tes_|_t']
+    });
+
+    newTest({
+      title: "Can perform append command prefixed with count",
+      start: ['tes|t'],
+      keysPressed: '3a=<Esc>',
+      end: ['test==|=']
+    });
+
+    newTest({
+      title: "Can perform change char (s) command prefixed with count",
+      start: ['tes|ttest'],
+      keysPressed: '3s=====<Esc>',
+      end: ['tes====|=st']
+    });
+
+    newTest({
+      title: "Can handle 'o' with count",
+      start: ['|foobar'],
+      keysPressed: '5ofun<Esc>',
+      end: ['foobar', 'fu|n', 'fun', 'fun', 'fun', 'fun']
+    });
+
+    newTest({
+      title: "Can handle 'O' with count",
+      start: ['|foobar'],
+      keysPressed: '5Ofun<Esc>',
+      end: ['fun', 'fun', 'fun', 'fun', 'fu|n', 'foobar']
+    });
 });

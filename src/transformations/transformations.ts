@@ -1,5 +1,6 @@
-import { Position, PositionDiff } from "./../motion/position";
-import { Range } from "./../motion/range";
+import { Position, PositionDiff } from "./../common/motion/position";
+import { Range } from "./../common/motion/range";
+import * as vscode from 'vscode';
 
 /**
  * This file contains definitions of objects that represent text
@@ -43,6 +44,9 @@ export interface InsertTextTransformation {
    * If you don't know what this is, just ignore it. You probably don't need it.
    */
   diff?: PositionDiff;
+
+
+  manuallySetCursorPositions?: boolean;
 }
 
 export interface ReplaceTextTransformation {
@@ -202,7 +206,7 @@ export interface Tab {
   /**
    * Move the cursor this much.
    */
-  diff: PositionDiff;
+  diff?: PositionDiff;
 }
 
 /**
@@ -212,6 +216,15 @@ export interface Macro {
   type: "macro";
   register: string;
   replay: "contentChange" | "keystrokes";
+}
+
+/**
+ * Represents updating document content changes
+ */
+export interface ContentChangeTransformation {
+  type: "contentChange";
+  changes: vscode.TextDocumentContentChangeEvent[];
+  diff: PositionDiff;
 }
 
 export type Transformation
@@ -224,6 +237,7 @@ export type Transformation
   | ShowCommandLine
   | Dot
   | Macro
+  | ContentChangeTransformation
   | DeleteTextTransformation
   | Tab;
 

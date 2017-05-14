@@ -12,8 +12,8 @@ function rndName() {
   return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10);
 }
 
-async function createRandomFile(contents: string): Promise<vscode.Uri> {
-  const tmpFile = join(os.tmpdir(), rndName());
+async function createRandomFile(contents: string, fileExtension: string): Promise<vscode.Uri> {
+  const tmpFile = join(os.tmpdir(), rndName() + fileExtension);
 
   try {
     fs.writeFileSync(tmpFile, contents);
@@ -24,11 +24,13 @@ async function createRandomFile(contents: string): Promise<vscode.Uri> {
 }
 
 export function assertEqualLines(expectedLines: string[]) {
-  assert.equal(TextEditor.getLineCount(), expectedLines.length, "Line count does not match.");
-
   for (let i = 0; i < expectedLines.length; i++) {
-    assert.equal(TextEditor.readLineAt(i), expectedLines[i], `Line ${i} is different.`);
+    let expected = expectedLines[i];
+    let actual = TextEditor.readLineAt(i);
+    assert.equal(actual, expected, `Content does not match; Expected=${expected}. Actual=${actual}`);
   }
+
+  assert.equal(TextEditor.getLineCount(), expectedLines.length, "Line count does not match.");
 }
 
 /**
@@ -41,8 +43,8 @@ export function assertEqual<T>(one: T, two: T, message: string = ""): void {
   assert.equal(one, two, message);
 }
 
-export async function setupWorkspace(): Promise<any> {
-  const file   = await createRandomFile("");
+export async function setupWorkspace(fileExtension: string = ""): Promise<any> {
+  const file   = await createRandomFile("", fileExtension);
   const doc  = await vscode.workspace.openTextDocument(file);
 
   await vscode.window.showTextDocument(doc);

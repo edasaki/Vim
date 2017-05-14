@@ -8,10 +8,19 @@ export type OptionValue = number | string | boolean;
 export type ValueMapping = {
   [key: number]: OptionValue
   [key: string]: OptionValue
-}
+};
 
 export interface IHandleKeys {
   [key: string]: boolean;
+}
+
+export interface IStatusBarColors {
+  normal: string;
+  insert: string;
+  visual: string;
+  visualline: string;
+  visualblock: string;
+  replace: string;
 }
 
 /**
@@ -89,8 +98,13 @@ class ConfigurationClass {
           useKey = false;
         }
       } else if (!this.useCtrlKeys && (bracketedKey.slice(1, 3) === "C-")) {
-        // Check for useCtrlKeys and if it is a <C- ctrl based keybinding
-        useKey = false;
+        // Check for useCtrlKeys and if it is a <C- ctrl> based keybinding.
+        // However, we need to still capture <C-c> due to overrideCopy.
+        if (bracketedKey === '<C-c>' && this.overrideCopy) {
+          useKey = true;
+        } else {
+          useKey = false;
+        }
       }
 
       // Set the context of whether or not this key will be used based on criteria from above
@@ -145,11 +159,6 @@ class ConfigurationClass {
    * Should we highlight incremental search matches?
    */
   hlsearch = false;
-
-  /**
-   * Used internally for nohl.
-   */
-  hl = true;
 
   /**
    * Ignore case when searching with / or ?.
@@ -221,6 +230,23 @@ class ConfigurationClass {
   startInInsertMode = false;
 
   /**
+   * Enable changing of the status bar color based on mode
+   */
+  statusBarColorControl = false;
+
+  /**
+   * Status bar colors to change to based on mode
+   */
+  statusBarColors: IStatusBarColors = {
+    "normal": "#005f5f",
+    "insert": "#5f0000",
+    "visual": "#5f00af",
+    "visualline": "#005f87",
+    "visualblock": "#86592d",
+    "replace": "#000000",
+  };
+
+  /**
    * Color of search highlights.
    */
   searchHighlightColor = "rgba(150, 150, 255, 0.3)";
@@ -257,6 +283,11 @@ class ConfigurationClass {
    * Array of all key combinations that were registered in angle bracket notation
    */
   boundKeyCombinations: string[] = [];
+
+  /**
+   * In visual mode, start a search with * or # using the current selection
+   */
+  visualstar = false;
 }
 
 function overlapSetting(args: { codeName: string, default: OptionValue, codeValueMapping?: ValueMapping }) {
