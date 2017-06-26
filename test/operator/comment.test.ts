@@ -4,6 +4,7 @@ import { setupWorkspace, cleanUpWorkspace } from './../testUtils';
 import { ModeName } from '../../src/mode/mode';
 import { ModeHandler } from '../../src/mode/modeHandler';
 import { getTestingFunctions } from '../testSimplifier';
+import { getAndUpdateModeHandler } from "../../extension";
 
 suite("comment operator", () => {
     let modeHandler: ModeHandler;
@@ -14,32 +15,32 @@ suite("comment operator", () => {
 
     setup(async () => {
         await setupWorkspace(".js");
-        modeHandler = new ModeHandler();
+        modeHandler = await getAndUpdateModeHandler();
     });
 
     teardown(cleanUpWorkspace);
 
     newTest({
-      title: "gbb comments out current line",
+      title: "gcc comments out current line",
       start: [
-        "first| line",
-        "second line"
+        "first line",
+        "|second line"
       ],
-      keysPressed: 'gbb',
+      keysPressed: 'gcc',
       end: [
-        "|// first line",
-        "second line",
+        "first line",
+        "|// second line",
       ],
     });
 
     newTest({
-      title: "gbj comments in current and next line",
+      title: "gcj comments in current and next line",
       start: [
         "// first| line",
         "// second line",
         "third line"
       ],
-      keysPressed: 'gbj',
+      keysPressed: 'gcj',
       end: [
         "|first line",
         "second line",
@@ -52,7 +53,7 @@ suite("comment operator", () => {
       start: [
         "function test(arg|1, arg2, arg3) {"
       ],
-      keysPressed: 'gBi)',
+      keysPressed: 'gCi)',
       end: [
         "function test(|/*arg1, arg2, arg3*/) {"
       ]
@@ -63,7 +64,7 @@ suite("comment operator", () => {
       start: [
         "blah |blah blah"
       ],
-      keysPressed: 'vllllgB',
+      keysPressed: 'vllllgC',
       end: [
         "blah |/*blah*/ blah"
       ],

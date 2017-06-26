@@ -4,6 +4,7 @@ import { setupWorkspace, setTextEditorOptions, cleanUpWorkspace, assertEqual } f
 import { ModeName } from '../../src/mode/mode';
 import { ModeHandler } from '../../src/mode/modeHandler';
 import { getTestingFunctions } from '../testSimplifier';
+import { getAndUpdateModeHandler } from "../../extension";
 
 suite("Mode Normal", () => {
     let modeHandler: ModeHandler;
@@ -15,7 +16,7 @@ suite("Mode Normal", () => {
     setup(async () => {
         await setupWorkspace();
         setTextEditorOptions(4, false);
-        modeHandler = new ModeHandler();
+        modeHandler = await getAndUpdateModeHandler();
     });
 
     teardown(cleanUpWorkspace);
@@ -125,6 +126,13 @@ suite("Mode Normal", () => {
       start: ['one', 'two', 'three', '|four', 'five'],
       keysPressed: '3dd',
       end: ["one", "two", "|three"],
+    });
+
+    newTest({
+      title: "Can handle d2d",
+      start: ['one', 'two', '|three', 'four', 'five'],
+      keysPressed: 'd2d',
+      end: ["one", "two", "|five"],
     });
 
     newTest({
@@ -249,6 +257,14 @@ suite("Mode Normal", () => {
       keysPressed: '^sk',
       end: ['k|ext'],
       endMode: ModeName.Insert
+    });
+
+    newTest({
+      title: "Can handle 'yiw' with correct cursor ending position",
+      start: ['tes|t'],
+      keysPressed: 'yiwp',
+      end: ['ttes|test'],
+      endMode: ModeName.Normal
     });
 
     newTest({
@@ -1095,6 +1111,13 @@ suite("Mode Normal", () => {
     });
 
     newTest({
+      title: "Can handle pasting in visual mode over selection",
+      start: ['|foo', 'bar', 'fun'],
+      keysPressed: 'Yjvll"ayjV"app',
+      end: ['foo', 'bar', 'bar', '|fun']
+    });
+
+    newTest({
       title: "Can repeat w",
       start: ['|one two three four'],
       keysPressed: '2w',
@@ -1135,6 +1158,24 @@ suite("Mode Normal", () => {
       keysPressed: '3g_',
       end: ['testtest', 'testtest', 'testtes|t']
     });
+
+//  These tests run poorly on Travis for w.e. reason
+    // newTest({
+    //   title: "gq handles spaces after single line comments correctly",
+    //   start: ['//    We choose to write a vim extension, not because it is easy, but because it is hard|.'],
+    //   keysPressed: 'Vgq',
+    //   end: [ '//    We choose to write a vim extension, not because it is easy, but because it is',
+    //         '|//    hard.'],
+    // });
+
+    // newTest({
+    //   title: "gq handles spaces before single line comments correctly",
+    //   start: ['    // We choose to write a vim extension, not because it is easy, but because it is hard|.'],
+    //   keysPressed: 'Vgq',
+    //   end: [ '    // We choose to write a vim extension, not because it is easy, but because',
+    //         '|    // it is hard.']
+    // });
+
 
     newTest({
       title: "Can handle space",
@@ -1411,6 +1452,20 @@ suite("Mode Normal", () => {
     });
 
     newTest({
+      title: "can <C-a> on word with multiple numbers (incrementing first number)",
+      start: ["f|oo1bar2"],
+      keysPressed: "<C-a>",
+      end: ["foo|2bar2"]
+    });
+
+    newTest({
+      title: "can <C-a> on word with multiple numbers (incrementing second number)",
+      start: ["foo1|bar2"],
+      keysPressed: "<C-a>",
+      end: ["foo1bar|3"]
+    });
+
+    newTest({
       title: "can do Y",
       start: ["|blah blah"],
       keysPressed: "Yp",
@@ -1549,11 +1604,34 @@ suite("Mode Normal", () => {
     });
 
     newTest({
+      title: "can do cit with self closing tags",
+      start: ["<div><div a=1/>{{c|ursor here}}</div>"],
+      keysPressed: "cit",
+      end: ["<div>|</div>"],
+      endMode: ModeName.Insert
+    });
+
+    newTest({
       title: "Respects indentation with cc",
       start: ["{", "  int| a;"],
       keysPressed: "cc",
       end: ["{", "  |"],
       endMode: ModeName.Insert
+    });
+
+    newTest({
+      title: "can handle 'cc' on empty line",
+      start: ['foo', '|', 'bar'],
+      keysPressed: 'cc',
+      end: ['foo', '|', 'bar'],
+      endMode: ModeName.Insert
+    });
+
+    newTest({
+      title: "cc copies linewise",
+      start: ['foo', '|fun', 'bar'],
+      keysPressed: 'cc<Esc>jp',
+      end: ['foo', '', 'bar', '|fun']
     });
 
     newTest({

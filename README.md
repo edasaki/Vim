@@ -1,12 +1,17 @@
-<h1 align="center"><img src="./images/icon.png" height="128"><br>VSCodeVim</h1>
+<h1 align="center"><img src="https://raw.githubusercontent.com/VSCodeVim/Vim/master/images/icon.png" height="128"><br>VSCodeVim</h1>
 <p align="center"><strong>Vim emulation for Visual Studio Code.</strong></p>
-<p align="center"><a href="http://aka.ms/vscodevim"><img src="http://vsmarketplacebadge.apphb.com/version/vscodevim.vim.svg" alt="Version"></a> <a href="https://travis-ci.org/VSCodeVim/Vim"><img src="https://travis-ci.org/VSCodeVim/Vim.svg?branch=master" alt="Build Status"></a> <a href="https://vscodevim-slackin.azurewebsites.net"><img src="https://vscodevim-slackin.azurewebsites.net/badge.svg" alt="Slack Status"></a></p>
+
+![http://aka.ms/vscodevim](https://vsmarketplacebadge.apphb.com/version/vscodevim.vim.svg)
+![https://travis-ci.org/VSCodeVim/Vim]( https://travis-ci.org/VSCodeVim/Vim.svg?branch=master)
+
+
 <hr>
 
 VSCodeVim is a [Visual Studio Code](https://code.visualstudio.com/) extension that enables Vim keybindings, including:
 
 * Modes: normal, insert, command-line, visual, visual line, visual block
 * Command combinations (`c3w`, `daw`, `2dd`, etc)
+* Highly versatile command remapping (`jj` to `<Esc>`, `:` to command panel, etc.)
 * Highly versatile command remapping (`jj` to `<Esc>`, `:` to command panel, etc.)
 * Incremental search with `/` and `?`
 * Marks
@@ -29,11 +34,12 @@ Donations help convince me to work on this project rather than my other (non-ope
 
 ## Contents
 
-* [Quick example settings](#quick-example-settings)
+* [Getting Started](#getting-started)
     * [Mac setup](#mac-setup)
     * [Windows setup](#windows-setup)
 * [Settings](#settings)
     * [VSCodeVim settings](#vscodevim-settings)
+    * [Neovim Integration](#neovim-integration)
     * [Key remapping](#key-remapping)
     * [Vim settings](#vim-settings)
     * [Status bar colors (vim-airline)](#status-bar-color-settings)
@@ -139,8 +145,7 @@ These settings are specific to VSCodeVim.
 * Type: Color String (Default: `rgba(150, 150, 150, 0.3)`)
 
 #### `"vim.useSolidBlockCursor"`
-* Use a non-blinking block cursor
-* Type: Boolean (Default: `false`)
+We have removed this option, due to it making VSCodeVim's performance suffer immensely.
 
 #### `"vim.useCtrlKeys"`
 * Enable Vim ctrl keys overriding common VS Code operations (eg. copy, paste, find, etc). Enabling this setting will:
@@ -167,6 +172,18 @@ These settings are specific to VSCodeVim.
 #### `"vim.visualstar"`
 * In visual mode, start a search with * or # using the current selection
 * Type: Boolean (Default: `false`)
+
+### Neovim Integration
+
+We now have neovim integration for Ex-commands. If you want to take advantage of this integration, set `"vim.enableNeovim"` to `true`, and set your `"vim.neovimPath"`. If you don't have neovim installed, [install neovim here](https://github.com/neovim/neovim/wiki/Installing-Neovim). If you don't want to install neovim, all of the old functionality should still work as is (we would really suggest neovim installing though. The new Ex support is super cool, and we'd like to integrate neovim more in the future).
+
+Please leave feedback on neovim [here](https://github.com/VSCodeVim/Vim/issues/1735).
+
+Here's some ideas on what you can do with your newfound neovim integration!
+
+* [The power of g](http://vim.wikia.com/wiki/Power_of_g)
+* [The :normal command](https://vi.stackexchange.com/questions/4418/execute-normal-command-over-range)
+* Faster search and replace!
 
 ### Key remapping
 
@@ -345,7 +362,7 @@ You can enter multi-cursor mode by:
 
 * Pressing cmd-d on OSX.
 * Running "Add Cursor Above/Below" or the shortcut on any platform.
-* Pressing `gc`, a new shortcut we added which is equivalent to cmd-d on OSX or ctrl-d on Windows. (It adds another cursor at the next word that matches the word the cursor is currently on.)
+* Pressing `gb`, a new shortcut we added which is equivalent to cmd-d on OSX or ctrl-d on Windows. (It adds another cursor at the next word that matches the word the cursor is currently on.)
 
 ### Doing stuff
 
@@ -415,26 +432,10 @@ Some examples:
 
 Commentary in VSCodeVim works similarly to tpope's [vim-commentary](https://github.com/tpope/vim-commentary) but uses the VSCode native "Toggle Line Comment" and "Toggle Block Comment" features.
 
-> ⚠️ Because [`gc`](#vscodevim-tricks) is already used in VSCodeVim, the commentary operators are bound to `gb` for line comments and `gB` for block comments.
-
 Usage examples:
-* `gb` - toggles line comment. For example `gbb` to toggle line comment for current line and `gb2j` to toggle line comments for the current line and the next line.
-* `gB` - toggles block comment. For example `gBi)` to comment out everything within parenthesis.
+* `gc` - toggles line comment. For example `gcc` to toggle line comment for current line and `gc2j` to toggle line comments for the current line and the next line.
+* `gC` - toggles block comment. For example `gCi)` to comment out everything within parenthesis.
 
-If you are use to using vim-commentary you are probably use to using `gc` instead of `gb`. This can be achieved by adding the following remapping to your VSCode settings:
-
-```
-"vim.otherModesKeyBindings": [
-    {
-        "before": ["g", "c"],
-        "after": ["g", "b"]
-    },
-    {
-        "before": ["g", "C"],
-        "after": ["g", "B"]
-    }
-],
-```
 
 ### vim-indent-object
 
@@ -456,7 +457,7 @@ Vim has a lot of nooks and crannies. VSCodeVim preserves some of the coolest noo
 
 * `gd` - jump to definition. _Astoundingly_ useful in any language that VSCode provides definition support for. I use this one probably hundreds of times a day.
 * `gq` - on a visual selection - Reflow and wordwrap blocks of text, preserving commenting style. Great for formatting documentation comments.
-* `gc` - which adds another cursor on the next word it finds which is the same as the word under the cursor.
+* `gb` - which adds another cursor on the next word it finds which is the same as the word under the cursor.
 * `af` - a command that I added in visual mode, which selects increasingly large blocks of text. e.g. if you had "blah (foo [bar 'ba|z'])" then it would select 'baz' first. If you pressed `af` again, it'd then select [bar 'baz'], and if you did it a third time it would select "(foo [bar 'baz'])".
 * `gh` - another custom VSCodeVim command. This one is equivalent to hovering your mouse over wherever the cursor is. Handy for seeing types and error messages without reaching for the mouse!
 
@@ -467,6 +468,18 @@ Vim has a lot of nooks and crannies. VSCodeVim preserves some of the coolest noo
 ### Help! None of the vim `ctrl` (e.g. `ctrl+f`, `ctrl+v`) commands work
 
 Set the [`useCtrlKeys` setting](#vimusectrlkeys) to `true`.
+
+### Moving j and k over folds opens up the folds! This extension is unusable!
+
+You can try setting `vim.foldfix` to `true`. Note, however, that it is a hack. It works fine, but there are side effects. We are unable to fix this issue properly due to VSCode API limitations. Go to [here](https://github.com/Microsoft/vscode/issues/22276) for updates on the issue.
+
+### Key repeat doesn't work! And I'm on Mac!
+
+Take a look [here](#mac-setup).
+
+### There are annoying intellisense/notifications/popups that I can't close with `<esc>`! Or I'm in a snippet and I want to close intellisense!
+
+Press `shift+<esc>` to close all of those boxes.
 
 ## Contributing
 

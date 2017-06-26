@@ -5,6 +5,7 @@ import {ModeName} from '../../src/mode/mode';
 import {TextEditor} from '../../src/textEditor';
 import {ModeHandler} from "../../src/mode/modeHandler";
 import { getTestingFunctions } from '../testSimplifier';
+import { getAndUpdateModeHandler } from "../../extension";
 
 suite("Mode Insert", () => {
     let modeHandler: ModeHandler;
@@ -16,7 +17,7 @@ suite("Mode Insert", () => {
 
     setup(async () => {
         await setupWorkspace();
-        modeHandler = new ModeHandler();
+        modeHandler = await getAndUpdateModeHandler();
     });
 
     teardown(cleanUpWorkspace);
@@ -245,6 +246,20 @@ suite("Mode Insert", () => {
       title: "Can perform append command prefixed with count",
       start: ['tes|t'],
       keysPressed: '3a=<Esc>',
+      end: ['test==|=']
+    });
+
+    newTest({
+      title: "Can perform insert at start of line command prefixed with count",
+      start: ['tes|t'],
+      keysPressed: '2I_<Esc>',
+      end: ['_|_test']
+    });
+
+    newTest({
+      title: "Can perform append to end of line command prefixed with count",
+      start: ['t|est'],
+      keysPressed: '3A=<Esc>',
       end: ['test==|=']
     });
 

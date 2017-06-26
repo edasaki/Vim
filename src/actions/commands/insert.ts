@@ -9,7 +9,9 @@ import { TextEditor } from './../../textEditor';
 import { RegisterAction } from './../base';
 import { ArrowsInInsertMode } from './../motion';
 import {
-  BaseCommand, DocumentContentChangeAction, CommandInsertAtCursor, CommandInsertAfterCursor
+  BaseCommand, DocumentContentChangeAction, CommandInsertAtCursor,
+  CommandInsertAfterCursor, CommandInsertAtLineEnd,
+  CommandInsertAtFirstCharacter
 } from './actions';
 
 @RegisterAction
@@ -44,11 +46,17 @@ class CommandEscInsertMode extends BaseCommand {
       }
     }
     vimState.currentMode = ModeName.Normal;
+
     // If we wanted to repeat this insert (only for i and a), now is the time to do it. Insert
     // count amount of these strings before returning back to normal mode
     const typeOfInsert = vimState.recordedState.actionsRun[vimState.recordedState.actionsRun.length - 3];
-    if (vimState.recordedState.count > 1 &&
-      (typeOfInsert instanceof CommandInsertAtCursor || typeOfInsert instanceof CommandInsertAfterCursor)) {
+    const isTypeToRepeatInsert = typeOfInsert instanceof CommandInsertAtCursor ||
+      typeOfInsert instanceof CommandInsertAfterCursor ||
+      typeOfInsert instanceof CommandInsertAtLineEnd ||
+      typeOfInsert instanceof CommandInsertAtFirstCharacter;
+
+    // If this is the type to repeat insert, do this now
+    if (vimState.recordedState.count > 1 && isTypeToRepeatInsert) {
       const changeAction = vimState.recordedState.actionsRun[vimState.recordedState.actionsRun.length - 2] as DocumentContentChangeAction;
       const changesArray = changeAction.contentChanges;
       let docChanges: vscode.TextDocumentContentChangeEvent[] = [];
@@ -182,19 +190,23 @@ class CommandInsertIndentInCurrentLine extends BaseCommand {
   }
 }
 
-@RegisterAction
-export class CommandInsertTabInInsertMode extends BaseCommand {
-  modes = [ModeName.Insert];
-  keys = ["<tab>"];
-  runsOnceForEveryCursor() { return false; }
+// Upon thinking about it some more, I'm not really sure how to fix this
+// elegantly. Tab is just used for so many things in the VSCode editor, and all
+// of them happen to be overloaded. Sometimes tab does a tab, sometimes it does
+// an emmet completion, sometimes a snippet completion, etc.
+// @RegisterAction
+// export class CommandInsertTabInInsertMode extends BaseCommand {
+//   modes = [ModeName.Insert];
+//   keys = ["<tab>"];
+//   runsOnceForEveryCursor() { return false; }
 
-  public async exec(position: Position, vimState: VimState): Promise<VimState> {
-    vimState.recordedState.transformations.push({
-      type: "tab"
-    });
-    return vimState;
-  }
-}
+//   public async exec(position: Position, vimState: VimState): Promise<VimState> {
+//     vimState.recordedState.transformations.push({
+//       type: "tab"
+//     });
+//     return vimState;
+//   }
+// }
 
 @RegisterAction
 export class CommandInsertInInsertMode extends BaseCommand {
@@ -215,7 +227,7 @@ export class CommandInsertInInsertMode extends BaseCommand {
           range: new Range(selection.start as Position, selection.end as Position),
         });
       } else {
-        if (line.length > 0 && line.match(/^\s+$/) && Configuration.expandtab) {
+        if (line.length > 0 && line.match(/^ +$/) && Configuration.expandtab) {
           // If the line is empty except whitespace, backspace should return to
           // the next lowest level of indentation.
 

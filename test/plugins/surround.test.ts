@@ -4,6 +4,7 @@ import { setupWorkspace, cleanUpWorkspace } from './../testUtils';
 import { ModeName } from '../../src/mode/mode';
 import { ModeHandler } from '../../src/mode/modeHandler';
 import { getTestingFunctions } from '../testSimplifier';
+import { getAndUpdateModeHandler } from "../../extension";
 
 suite("surround plugin", () => {
     let modeHandler: ModeHandler;
@@ -14,7 +15,7 @@ suite("surround plugin", () => {
 
     setup(async () => {
         await setupWorkspace(".js");
-        modeHandler = new ModeHandler();
+        modeHandler = await getAndUpdateModeHandler();
     });
 
     teardown(cleanUpWorkspace);
@@ -38,6 +39,13 @@ suite("surround plugin", () => {
       start: ["first li|ne test"],
       keysPressed: 'ysiw<abc attr1 attr2="test">',
       end: ['first <abc attr1 attr2="test">|line</abc> test'],
+    });
+
+    newTest({
+      title: "yss) surrounds entire line respecting whitespace",
+      start: ["foo", "    foob|ar  "],
+      keysPressed: 'yss)',
+      end: ["foo", "    (|foobar)  "]
     });
 
     newTest({

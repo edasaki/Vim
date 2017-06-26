@@ -3,7 +3,7 @@
   "displayName": "Vim",
   "description": "Vim emulation for Visual Studio Code",
   "icon": "images/icon.png",
-  "version": "0.7.1",
+  "version": "0.9.0",
   "publisher": "vscodevim",
   "galleryBanner": {
     "color": "#e3f4ff",
@@ -117,12 +117,12 @@
       {
         "key": "Delete",
         "command": "extension.vim_delete",
-        "when": "editorTextFocus && vim.active && !inDebugRepl"
+        "when": "editorTextFocus && vim.active && vim.mode != 'Insert' && !inDebugRepl"
       },
       {
         "key": "tab",
         "command": "extension.vim_tab",
-        "when": "editorFocus && vim.active && !inDebugRepl"
+        "when": "editorFocus && vim.active && vim.mode != 'Insert' && !inDebugRepl"
       },
       {
         "key": "ctrl+r",
@@ -293,6 +293,41 @@
         "key": "down",
         "command": "extension.vim_down",
         "when": "editorTextFocus && vim.active && !inDebugRepl && !suggestWidgetVisible && !suggestWidgetMultipleSuggestions"
+      },
+      {
+        "key": "j",
+        "command": "list.focusDown",
+        "when": "listFocus"
+      },
+      {
+          "key": "k",
+          "command": "list.focusUp",
+          "when": "listFocus"
+      },
+      {
+          "key": "o",
+          "command": "list.toggleExpand",
+          "when": "listFocus"
+      },
+      {
+        "key": "g g",
+        "command": "list.focusFirst",
+        "when": "listFocus"
+      },
+      {
+        "key": "shift+G",
+        "command": "list.focusLast",
+        "when": "listFocus"
+      },
+      {
+        "key": "ctrl+d",
+        "command": "list.focusPageDown",
+        "when": "listFocus"
+      },
+      {
+        "key": "ctrl+u",
+        "command": "list.focusPageUp",
+        "when": "listFocus"
       }
     ],
     "configuration": {
@@ -349,11 +384,6 @@
           "type": "number",
           "description": "Timeout in milliseconds for remapped commands",
           "default": 1000
-        },
-        "vim.useSolidBlockCursor": {
-          "type": "boolean",
-          "description": "Use a non blinking block cursor.",
-          "default": false
         },
         "vim.scroll": {
           "type": "number",
@@ -475,6 +505,26 @@
           "type": "boolean",
           "description": "In visual mode, start a search with * or # using the current selection",
           "default": false
+        },
+        "vim.foldfix": {
+          "type": "boolean",
+          "description": "Uses a hack to move around folds properly",
+          "default": false
+        },
+        "vim.enableNeovim": {
+          "type": "boolean",
+          "description": "Use neovim on backend. (only works for Ex commands right now). You should restart VScode after enable/disabling this for the changes to take effect. NOTE: Neovim must be installed (v0.2.0) and neovimPath must be set the executable in order for this setting to work. Otherwise, vscodevim will crash.",
+          "default": false
+        },
+        "vim.neovimPath": {
+          "type": "string",
+          "description": "Path to run neovim executable. For example, /usr/bin/nvim, or  C:\\Program Files\\Neovim\\bin\\nvim.exe",
+          "default": "nvim"
+        },
+        "vim.disableAnnoyingNeovimMessage": {
+          "type": "boolean",
+          "description": "Get rid of that annoying message that shows up everytime you make a new file",
+          "default": false
         }
       }
     }
@@ -486,16 +536,19 @@
     "postinstall": "node ./node_modules/vscode/bin/install && gulp init"
   },
   "dependencies": {
-    "clipboardy": "^1.1.2",
+    "clipboardy": "^1.1.4",
     "diff-match-patch": "^1.0.0",
-    "lodash": "^4.12.0"
+    "lodash": "^4.12.0",
+    "neovim-client": "^2.1.0",
+    "promised-neovim-client": "^2.0.2",
+    "untildify": "^3.0.2"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.39",
     "@types/node": "^6.0.41",
     "gulp": "^3.9.1",
     "gulp-bump": "^2.1.0",
-    "gulp-git": "^1.7.1",
+    "gulp-git": "^2.4.1",
     "gulp-inject-string": "^1.1.0",
     "gulp-shell": "^0.5.2",
     "gulp-tag-version": "^1.3.0",

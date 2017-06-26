@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import * as node from "../node";
+const untildify = require('untildify');
 
 export enum FilePosition {
   CurrentWindow,
@@ -11,8 +12,10 @@ export enum FilePosition {
 }
 
 export interface IFileCommandArguments extends node.ICommandArgs {
-  name?: string;
+  name: string | undefined;
+  bang?: boolean;
   position?: FilePosition;
+  lineNumber?: number;
 }
 
 export class FileCommand extends node.CommandBase {
@@ -56,18 +59,29 @@ export class FileCommand extends node.CommandBase {
   }
 
   async execute(): Promise<void> {
-    if (!this._arguments.name) {
+    if (this._arguments.bang) {
+      await vscode.commands.executeCommand("workbench.action.files.revert");
+    }
+    if (this._arguments.name === undefined) {
       // Open an empty file
       if (this._arguments.position === FilePosition.CurrentWindow) {
         await vscode.commands.executeCommand("workbench.action.files.newUntitledFile");
       } else {
         await vscode.commands.executeCommand("workbench.action.splitEditor");
+        await vscode.commands.executeCommand("workbench.action.files.newUntitledFile");
+        await vscode.commands.executeCommand("workbench.action.closeOtherEditors");
       }
 
+      return;
+    } else if (this._arguments.name === "") {
+      if (this._arguments.position === FilePosition.NewWindow) {
+        await vscode.commands.executeCommand("workbench.action.splitEditor");
+      }
       return;
     }
 
     let currentFilePath = vscode.window.activeTextEditor!.document.uri.path;
+    this._arguments.name = <string>untildify(this._arguments.name);
     let newFilePath = path.isAbsolute(this._arguments.name) ?
       this._arguments.name :
       path.join(path.dirname(currentFilePath), this._arguments.name);
@@ -85,10 +99,16 @@ export class FileCommand extends node.CommandBase {
       let folder = vscode.Uri.file(newFilePath);
       await vscode.commands.executeCommand("vscode.open", folder,
         this._arguments.position === FilePosition.NewWindow ? this.getViewColumnToRight() : this.getActiveViewColumn());
+
+      if (this.arguments.lineNumber) {
+        vscode.window.activeTextEditor!.revealRange(
+          new vscode.Range(new vscode.Position(this.arguments.lineNumber, 0),
+          new vscode.Position(this.arguments.lineNumber, 0)));
+      }
     }
   }
 
-  protected async fileExists(filePath: string) {
+  protected fileExists(filePath: string) {
     return new Promise<boolean>((resolve, reject) => {
       fs.stat(filePath, async (error, stat) => {
         resolve(!error);

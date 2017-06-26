@@ -7,6 +7,7 @@ import { ModeName } from '../../src/mode/mode';
 import { TextEditor } from '../../src/textEditor';
 import { getTestingFunctions } from '../testSimplifier';
 import { Configuration } from "../../src/configuration/configuration";
+import { getAndUpdateModeHandler } from "../../extension";
 
 suite("Mode Visual", () => {
   let modeHandler: ModeHandler;
@@ -18,7 +19,7 @@ suite("Mode Visual", () => {
 
   setup(async () => {
     await setupWorkspace();
-    modeHandler = new ModeHandler();
+    modeHandler = await getAndUpdateModeHandler();
   });
 
   teardown(cleanUpWorkspace);
@@ -45,7 +46,7 @@ suite("Mode Visual", () => {
 
     // The input cursor comes BEFORE the block cursor. Try it out, this
     // is how Vim works.
-    assert.equal(sel.end.character, 5);
+    assert.equal(sel.end.character, 6);
     assert.equal(sel.end.line, 0);
   });
 
@@ -810,4 +811,137 @@ suite("Mode Visual", () => {
     });
 
   });
+
+  suite("search works in visual mode", () => {
+    newTest({
+      title: "Works with /",
+      start: ["f|oo",
+              "bar",
+              "fun",
+              "baz"],
+      keysPressed: "v/baz\nx",
+      end: ["f|az"]
+    });
+
+    newTest({
+      title: "Works with ?",
+      start: ["foo",
+              "bar",
+              "fun",
+              "b|az"],
+      keysPressed: "v?foo\nx",
+      end: ["|z"]
+    });
+  });
+
+  suite("X will delete linewise", () => {
+    newTest({
+      title: "normal selection",
+      start: ["this is",
+              "the| best",
+              "test i have seen in",
+              "the world"],
+      keysPressed: "vjX",
+      end: ["this is", "|the world"]
+    });
+
+    newTest({
+      title: "normal selection",
+      start: ["this is",
+              "the| best",
+              "test i have seen in",
+              "the world"],
+      keysPressed: "vj$X",
+      end: ["this is", "|the world"]
+    });
+  });
+
+  suite("C will delete linewise", () => {
+    newTest({
+      title: "normal selection",
+      start: ["this is",
+              "the| best",
+              "test i have seen in",
+              "the world"],
+      keysPressed: "vjC",
+      end: ["this is", "|", "the world"]
+    });
+
+    newTest({
+      title: "normal selection",
+      start: ["this is",
+              "the| best",
+              "test i have seen in",
+              "the world"],
+      keysPressed: "vj$C",
+      end: ["this is", "|", "the world"]
+    });
+  });
+
+  suite("R will delete linewise", () => {
+    newTest({
+      title: "normal selection",
+      start: ["this is",
+              "the| best",
+              "test i have seen in",
+              "the world"],
+      keysPressed: "vjR",
+      end: ["this is", "|", "the world"]
+    });
+
+    newTest({
+      title: "normal selection",
+      start: ["this is",
+              "the| best",
+              "test i have seen in",
+              "the world"],
+      keysPressed: "vj$R",
+      end: ["this is", "|", "the world"]
+    });
+  });
+
+  suite("Linewise Registers will be inserted properly", () => {
+    newTest({
+      title: "downward selection",
+      start: ["i ya|nked",
+              "this line",
+              "",
+              "1.line",
+              "a123456",
+              "b123456",
+              "2.line"],
+      keysPressed: "vjY4j3lvjllp",
+      end:   ["i yanked",
+              "this line",
+              "",
+              "1.line",
+              "a12",
+              "|i yanked",
+              "this line",
+              "6",
+              "2.line"],
+    });
+
+    newTest({
+      title: "upward selection",
+      start: ["i yanked",
+              "this| line",
+              "",
+              "1.line",
+              "a123456",
+              "b123456",
+              "2.line"],
+      keysPressed: "vkY4j3lvjllp",
+      end:   ["i yanked",
+              "this line",
+              "",
+              "1.line",
+              "a12",
+              "|i yanked",
+              "this line",
+              "6",
+              "2.line"],
+    });
+  });
 });
+

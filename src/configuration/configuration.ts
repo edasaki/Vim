@@ -130,10 +130,6 @@ class ConfigurationClass {
     }
   }
 
-  /**
-   * Should the block cursor not blink?
-   */
-  useSolidBlockCursor = false;
 
   /**
    * Use the system's clipboard when copying.
@@ -288,6 +284,17 @@ class ConfigurationClass {
    * In visual mode, start a search with * or # using the current selection
    */
   visualstar = false;
+
+  /**
+   * Uses a hack to fix moving around folds.
+   */
+  foldfix = false;
+
+  enableNeovim = true;
+
+  neovimPath = "nvim";
+
+  disableAnnoyingNeovimMessage = false;
 }
 
 function overlapSetting(args: { codeName: string, default: OptionValue, codeValueMapping?: ValueMapping }) {
